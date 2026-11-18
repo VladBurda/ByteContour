@@ -79,6 +79,7 @@ class CleanupView(QWidget):
         self.next = QPushButton("Next page")
         self.next.clicked.connect(self._next)
         self.preview = QPushButton("Preview selected")
+        self.preview.setProperty("role", "primary")
         self.preview.clicked.connect(self._preview)
         for button in (self.refresh, self.latest, self.next, self.preview):
             buttons.addWidget(button)

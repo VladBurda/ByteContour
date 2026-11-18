@@ -61,6 +61,7 @@ def _note(value: str = "") -> QLabel:
     label = QLabel(value)
     label.setTextFormat(Qt.TextFormat.PlainText)
     label.setWordWrap(True)
+    label.setObjectName("secondary")
     return label
 
 
@@ -114,6 +115,7 @@ class ScanView(QWidget):
         layout.addWidget(self.incremental)
         buttons = QHBoxLayout()
         self.start = QPushButton("Start scan")
+        self.start.setProperty("role", "primary")
         self.start.clicked.connect(self._start)
         self.root.returnPressed.connect(self._start)
         self.pause = QPushButton("Pause")

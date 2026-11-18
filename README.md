@@ -19,7 +19,7 @@ uv sync --locked
 uv run python -m bytecontour
 ```
 
-Use **Alt+1** through **Alt+8** to switch sections and **Ctrl+B** to collapse or expand the sidebar. ByteContour saves the sidebar preference with Qt's native settings.
+Use the arrow button at the top of the sidebar or **Ctrl+B** to collapse or expand it. **Alt+1** through **Alt+8** switch sections. ByteContour remembers the sidebar state.
 
 ## Scan a folder or drive
 

@@ -97,6 +97,7 @@ class DuplicateView(QWidget):
         self.latest = QPushButton("Latest inventory")
         self.latest.clicked.connect(lambda: self.open_snapshot(None))
         self.find_button = QPushButton("Find duplicates")
+        self.find_button.setProperty("role", "primary")
         self.find_button.clicked.connect(self._detect)
         self.cancel = QPushButton("Cancel")
         self.cancel.clicked.connect(self._cancel)

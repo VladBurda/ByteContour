@@ -168,6 +168,7 @@ class UsagePanel(QTabWidget):
         page = QWidget()
         layout = QVBoxLayout(page)
         label = QLabel(description)
+        label.setObjectName("secondary")
         label.setWordWrap(True)
         layout.addWidget(label)
         layout.addWidget(chart, 1)

@@ -96,6 +96,7 @@ class MonitorView(QWidget):
         browse = QPushButton("Browse…")
         browse.clicked.connect(self._browse)
         self.add = QPushButton("Watch folder")
+        self.add.setProperty("role", "primary")
         self.add.clicked.connect(self._add)
         add_row.addWidget(self.path, 1)
         add_row.addWidget(browse)
@@ -121,6 +122,7 @@ class MonitorView(QWidget):
         self.sample = QPushButton("Reconcile now")
         self.sample.clicked.connect(lambda: self._poll(reconcile=True))
         self.remove = QPushButton("Remove watch")
+        self.remove.setProperty("role", "danger")
         self.remove.clicked.connect(self._remove)
         for button in (self.save, self.toggle, self.sample, self.remove):
             actions.addWidget(button)

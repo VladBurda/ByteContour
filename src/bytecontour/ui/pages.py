@@ -70,7 +70,7 @@ PAGES = (
         "preferences-system",
         "ByteContour preferences",
         "More settings will appear here",
-        "Use the View menu to change sidebar visibility.",
+        "Use the arrow button at the top of the sidebar to collapse or expand it.",
     ),
 )
 

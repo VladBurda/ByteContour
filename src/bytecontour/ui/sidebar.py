@@ -5,6 +5,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QButtonGroup,
     QFrame,
+    QHBoxLayout,
     QLabel,
     QSizePolicy,
     QStyle,
@@ -29,6 +30,7 @@ _FALLBACK_ICONS = (
 
 class Sidebar(QFrame):
     page_selected = Signal(int)
+    toggle_requested = Signal()
 
     def __init__(self) -> None:
         super().__init__()
@@ -37,15 +39,31 @@ class Sidebar(QFrame):
         layout.setContentsMargins(10, 18, 10, 12)
         layout.setSpacing(4)
 
+        header = QHBoxLayout()
+        self._toggle = QToolButton()
+        self._toggle.setObjectName("sidebarToggle")
+        self._toggle.setFixedSize(44, 36)
+        self._toggle.clicked.connect(self.toggle_requested.emit)
+        header.addWidget(self._toggle)
+
         self._brand = QLabel("ByteContour")
         self._brand.setObjectName("brand")
         self._brand.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self._brand)
+        header.addWidget(self._brand, 1)
+        layout.addLayout(header)
         layout.addSpacing(14)
 
         self._group = QButtonGroup(self)
         self._buttons: list[QToolButton] = []
+        self._sections: list[QLabel] = []
         for index, (page, fallback) in enumerate(zip(PAGES, _FALLBACK_ICONS, strict=True)):
+            if index in (0, 2, 4, 6):
+                section = QLabel(
+                    {0: "OVERVIEW", 2: "RECOVER SPACE", 4: "INSIGHTS", 6: "WORKSPACE"}[index]
+                )
+                section.setObjectName("sectionLabel")
+                self._sections.append(section)
+                layout.addWidget(section)
             button = QToolButton()
             button.setText(page.title)
             button.setToolTip(page.title)
@@ -72,7 +90,13 @@ class Sidebar(QFrame):
             if collapsed
             else Qt.ToolButtonStyle.ToolButtonTextBesideIcon
         )
-        self._brand.setText("BC" if collapsed else "ByteContour")
+        self._brand.setVisible(not collapsed)
+        for section in self._sections:
+            section.setVisible(not collapsed)
+        self._toggle.setArrowType(Qt.ArrowType.RightArrow if collapsed else Qt.ArrowType.LeftArrow)
+        label = "Expand sidebar" if collapsed else "Collapse sidebar"
+        self._toggle.setAccessibleName(label)
+        self._toggle.setToolTip(f"{label} (Ctrl+B)")
         self.setFixedWidth(64 if collapsed else 218)
         for button in self._buttons:
             button.setToolButtonStyle(style)

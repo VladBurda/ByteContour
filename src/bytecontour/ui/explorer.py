@@ -13,14 +13,16 @@ from PySide6.QtCore import (
     QUrl,
     Signal,
 )
-from PySide6.QtGui import QDesktopServices, QStandardItem, QStandardItemModel
+from PySide6.QtGui import QDesktopServices, QResizeEvent, QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
     QComboBox,
+    QFrame,
     QGridLayout,
     QHBoxLayout,
     QHeaderView,
+    QLabel,
     QLineEdit,
     QMenu,
     QPushButton,
@@ -118,6 +120,7 @@ def _summary(result: InventoryResult) -> str:
 
 class Dashboard(QWidget):
     browse_requested = Signal(int, str, bool, object)
+    scan_requested = Signal()
 
     def __init__(self, controller: ScanController) -> None:
         super().__init__()
@@ -125,9 +128,14 @@ class Dashboard(QWidget):
         self._waiting = self._loading = False
         self._scan_id: int | None = None
         layout = _layout(self, "Dashboard")
+        layout.addWidget(_note("Understand your storage. Find what matters. Make room."))
+        row = QHBoxLayout()
+        self.new_scan = QPushButton("New scan")
+        self.new_scan.setProperty("role", "primary")
+        self.new_scan.clicked.connect(self.scan_requested.emit)
+        row.addWidget(self.new_scan)
         self.status = _note("Loading latest inventory…")
         layout.addWidget(self.status)
-        row = QHBoxLayout()
         self._open = QPushButton("Browse inventory")
         self._open.setEnabled(False)
         self._open.clicked.connect(lambda: self._browse("", True))
@@ -137,6 +145,44 @@ class Dashboard(QWidget):
         row.addWidget(refresh)
         row.addStretch()
         layout.addLayout(row)
+        metrics = QHBoxLayout()
+        metrics.setSpacing(12)
+        self._metrics: list[QLabel] = []
+        for metric_title in ("SCANNED SIZE", "FILES", "VOLUME AVAILABLE"):
+            card = QFrame()
+            card.setObjectName("metricCard")
+            card_layout = QVBoxLayout(card)
+            card_layout.setContentsMargins(16, 14, 16, 14)
+            label = QLabel(metric_title)
+            label.setObjectName("metricLabel")
+            label.setWordWrap(True)
+            value = QLabel("—")
+            value.setObjectName("metricValue")
+            value.setAccessibleName(metric_title)
+            card_layout.addWidget(label)
+            card_layout.addWidget(value)
+            self._metrics.append(value)
+            metrics.addWidget(card, 1)
+        layout.addLayout(metrics)
+        self.empty = QFrame()
+        self.empty.setObjectName("emptyCard")
+        empty_layout = QVBoxLayout(self.empty)
+        empty_layout.setContentsMargins(24, 28, 24, 28)
+        empty_layout.setSpacing(12)
+        empty_layout.addStretch()
+        title = QLabel("A clearer picture of your storage starts here")
+        title.setWordWrap(True)
+        title.setObjectName("cardTitle")
+        empty_layout.addWidget(title)
+        empty_layout.addWidget(
+            _note(
+                "Choose New scan to analyze a folder or drive. Then explore the largest "
+                "files, find duplicates, and review cleanup candidates."
+            )
+        )
+        empty_layout.addStretch()
+        layout.addWidget(self.empty, 1)
+        self.empty.hide()
         self.charts = UsagePanel()
         self.charts.entry_selected.connect(self._browse)
         self.charts.extension_selected.connect(lambda ext: self._browse("", True, ext))
@@ -144,6 +190,16 @@ class Dashboard(QWidget):
         controller.inventory_ready.connect(self._ready)
         controller.failed.connect(self._failed)
         controller.idle.connect(self._pump)
+
+    def resizeEvent(self, event: QResizeEvent, /) -> None:
+        super().resizeEvent(event)
+        compact = self.width() < 540
+        for value in self._metrics:
+            value.setStyleSheet("font-size: 18px;" if compact else "font-size: 26px;")
+            card = value.parentWidget()
+            if card is not None and (card_layout := card.layout()) is not None:
+                margin = 8 if compact else 16
+                card_layout.setContentsMargins(margin, 14, margin, 14)
 
     def refresh(self) -> None:
         self._waiting = True
@@ -162,8 +218,24 @@ class Dashboard(QWidget):
         self._loading = False
         self._scan_id = result.scan.id if result.scan else None
         self._open.setEnabled(self._scan_id is not None)
-        self.status.setText(_summary(result))
+        self.status.setText(
+            f"Scan #{result.scan.id} | {result.scan.state.capitalize()} | {result.scan.root}"
+            if result.scan
+            else "No saved inventory yet."
+        )
         self.charts.load(result.overview)
+        overview = result.overview
+        self.empty.setVisible(overview is None)
+        self.charts.setVisible(overview is not None)
+        values = (
+            _size(overview.folder.size) if overview else "—",
+            f"{overview.folder.file_count:,}" if overview else "—",
+            _size(overview.capacity[2]) if overview and overview.capacity else "—",
+        )
+        for label, value in zip(self._metrics, values, strict=True):
+            label.setText(value)
+        if result.scan is None:
+            self.status.setText("No saved inventory yet. Start with a folder or drive.")
 
     def _failed(self, message: str) -> None:
         if self._loading:

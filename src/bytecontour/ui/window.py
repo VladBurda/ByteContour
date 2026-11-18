@@ -1,9 +1,10 @@
 """Main window composition, navigation, and local UI preferences."""
 
+from functools import partial
 from pathlib import Path
 
 from PySide6.QtCore import QSettings, QTimer, Slot
-from PySide6.QtGui import QAction, QCloseEvent, QKeySequence, QShowEvent
+from PySide6.QtGui import QCloseEvent, QKeySequence, QShortcut, QShowEvent
 from PySide6.QtWidgets import QHBoxLayout, QMainWindow, QStackedWidget, QTabWidget, QWidget
 
 from bytecontour.app_paths import app_settings, default_inventory_path
@@ -57,6 +58,7 @@ class MainWindow(QMainWindow):
         self.history_view.duplicates_requested.connect(self._open_duplicates)
         self.history_view.cleanup_requested.connect(self._open_cleanup)
         self.dashboard.browse_requested.connect(self._open_chart)
+        self.dashboard.scan_requested.connect(self._new_scan)
         self.scan_controller.scan_finished.connect(self._refresh_history)
         self.scan_controller.idle.connect(self._close_when_idle)
         self._close_requested = False
@@ -74,16 +76,11 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(workspace)
         self._sidebar.page_selected.connect(self.navigate)
 
-        view_menu = self.menuBar().addMenu("&View")
-        toggle_sidebar = QAction("&Collapse Sidebar", self)
-        toggle_sidebar.setCheckable(True)
-        toggle_sidebar.setShortcut(QKeySequence("Ctrl+B"))
-        toggle_sidebar.setChecked(bool(self._settings.value(_COLLAPSED_KEY, False, type=bool)))
-        self._sidebar.set_collapsed(toggle_sidebar.isChecked())
-        toggle_sidebar.toggled.connect(self._set_sidebar_collapsed)
-        view_menu.addAction(toggle_sidebar)
+        self._sidebar_collapsed = bool(self._settings.value(_COLLAPSED_KEY, False, type=bool))
+        self._sidebar.set_collapsed(self._sidebar_collapsed)
+        self._sidebar.toggle_requested.connect(self._toggle_sidebar)
+        QShortcut(QKeySequence("Ctrl+B"), self, self._toggle_sidebar)
 
-        navigate_menu = self.menuBar().addMenu("&Navigate")
         widget: QWidget
         for index, page in enumerate(PAGES):
             if index == 0:
@@ -103,11 +100,7 @@ class MainWindow(QMainWindow):
             else:
                 widget = build_page(page)
             self._pages.addWidget(widget)
-            action = QAction(page.title, self)
-            action.setShortcut(QKeySequence(f"Alt+{index + 1}"))
-            action.setData(index)
-            navigate_menu.addAction(action)
-        navigate_menu.triggered.connect(self._navigate_from_action)
+            QShortcut(QKeySequence(f"Alt+{index + 1}"), self, partial(self.navigate, index))
         self.navigate(0)
 
     def navigate(self, index: int) -> None:
@@ -143,6 +136,12 @@ class MainWindow(QMainWindow):
             self.explorer.invalidate_latest()
             self.duplicates.invalidate_latest()
             self.cleanup.invalidate_latest()
+
+    @Slot()
+    def _new_scan(self) -> None:
+        self.navigate(_EXPLORER)
+        self._explorer_tabs.setCurrentIndex(0)
+        self.scan_view.root.setFocus()
 
     @Slot(int)
     def _open_inventory(self, scan_id: int) -> None:
@@ -193,10 +192,9 @@ class MainWindow(QMainWindow):
             self._close_requested = True
             event.ignore()
 
-    def _navigate_from_action(self, action: QAction) -> None:
-        self.navigate(int(action.data()))
-
-    def _set_sidebar_collapsed(self, collapsed: bool) -> None:
-        self._sidebar.set_collapsed(collapsed)
-        self._settings.setValue(_COLLAPSED_KEY, collapsed)
+    @Slot()
+    def _toggle_sidebar(self) -> None:
+        self._sidebar_collapsed = not self._sidebar_collapsed
+        self._sidebar.set_collapsed(self._sidebar_collapsed)
+        self._settings.setValue(_COLLAPSED_KEY, self._sidebar_collapsed)
         self._settings.sync()

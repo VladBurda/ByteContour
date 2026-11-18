@@ -11,6 +11,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtWidgets import (
     QDialog,
     QLabel,
+    QMenuBar,
     QPlainTextEdit,
     QPushButton,
     QStackedWidget,
@@ -79,6 +80,7 @@ def test_shortcuts_select_pages_and_persist_sidebar(
     sidebar = window.findChild(Sidebar, "sidebar")
     assert pages is not None
     assert sidebar is not None
+    assert window.findChild(QMenuBar) is None
     window.activateWindow()
     qtbot.waitUntil(window.isActiveWindow)
     shortcuts = (
@@ -96,8 +98,13 @@ def test_shortcuts_select_pages_and_persist_sidebar(
         assert pages.currentIndex() == index % len(DESTINATIONS)
 
     expanded_width = sidebar.width()
-    QTest.keyClick(window, Qt.Key.Key_B, Qt.KeyboardModifier.ControlModifier)
+    toggle = sidebar.findChild(QToolButton, "sidebarToggle")
+    assert toggle is not None
+    assert toggle.accessibleName() == "Collapse sidebar"
+    QTest.mouseClick(toggle, Qt.MouseButton.LeftButton)
     assert sidebar.width() < expanded_width
+    assert toggle.isVisible()
+    assert toggle.accessibleName() == "Expand sidebar"
     reopened = MainWindow(
         QSettings(settings.fileName(), QSettings.Format.IniFormat),
         Path(settings.fileName()).with_name("reopened.sqlite3"),
@@ -107,6 +114,9 @@ def test_shortcuts_select_pages_and_persist_sidebar(
     assert reopened_sidebar is not None
     assert reopened_sidebar.width() == sidebar.width()
     QTest.keyClick(window, Qt.Key.Key_B, Qt.KeyboardModifier.ControlModifier)
+    assert sidebar.width() == expanded_width
+    QTest.keyClick(window, Qt.Key.Key_B, Qt.KeyboardModifier.ControlModifier)
+    QTest.mouseClick(toggle, Qt.MouseButton.LeftButton)
     assert sidebar.width() == expanded_width
 
 
