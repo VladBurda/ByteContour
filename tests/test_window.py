@@ -397,3 +397,25 @@ def test_cleanup_confirmation_and_audit(
         assert view.audit_model.index(0, 1).data() == "Recycled"
         assert "Recycle Bin" in view.detail.text()
         assert not source.exists() and destination.read_bytes() == b"temporary"
+
+
+def test_storage_monitor_alert_and_pause(qtbot: QtBot, window: MainWindow, tmp_path: Path) -> None:
+    root = tmp_path / "watched"
+    root.mkdir()
+    window.navigate(4)
+    view = window.monitor
+    view.path.setText(str(root))
+    view.threshold.setValue(1)
+    qtbot.waitUntil(view.add.isEnabled)
+    view.add.click()
+    qtbot.waitUntil(lambda: view.status.text() == "Watching")
+    assert view.snapshots.rowCount() == 1
+    (root / "growth").write_bytes(b"x" * 1024**2)
+    qtbot.waitUntil(view.sample.isEnabled)
+    view.sample.click()
+    qtbot.waitUntil(lambda: window.statusBar().currentMessage().startswith("Storage grew"))
+    assert view.snapshots.rowCount() == 2
+    assert "Growth alert" in str(view.snapshots.index(0, 4).data())
+    view.toggle.click()
+    qtbot.waitUntil(lambda: view.status.text() == "Paused")
+    assert not view.sample.isEnabled()

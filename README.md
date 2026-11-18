@@ -47,6 +47,12 @@ Duplicate review is read-only for your files. Rerunning detection replaces the s
 
 DiskSense revalidates files before sending them to the Windows Recycle Bin on supported fixed local drives. For duplicate candidates, it also compares the file with its keeper. Empty folders are review-only. Restore successfully recycled files from the Windows Recycle Bin while Windows retains them. The space estimate describes eventual savings after Windows removes the recycled files.
 
+## Monitor storage growth
+
+Open **Storage Monitor**, browse to a folder, and choose **Watch folder**. DiskSense records recent changes and samples the folder's size at a configurable interval. Set a growth threshold and cooldown under the selected folder. Growth alerts appear in the app status bar and in **Growth history**. **Reconcile now** refreshes the totals when the storage worker is free.
+
+Watches run while DiskSense is open. Pausing a watch retains its history. Enabled watches resume when the app reopens. Reconciliation measures the current folder even if the watch missed events while DiskSense was closed.
+
 ## Development
 
 ```powershell

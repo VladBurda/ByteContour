@@ -5,7 +5,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from PySide6.QtCore import QLockFile, QObject, QRunnable, Qt, QThreadPool, Signal, Slot
+from PySide6.QtCore import QLockFile, QObject, QRunnable, Qt, QThreadPool, QTimer, Signal, Slot
+from PySide6.QtWidgets import QApplication
 
 from disksense.cleanup import Candidates, CleanupAudit, CleanupPlan, CleanupService, Rules
 from disksense.database import ScanRepository, ScanSummary
@@ -18,6 +19,7 @@ from disksense.duplicate_store import (
 )
 from disksense.duplicates import DuplicateService, Review
 from disksense.inventory import InventoryQuery, InventoryReader, InventoryResult
+from disksense.monitor import MonitorData, MonitorService
 from disksense.scan_service import ScanService
 from disksense.scanner import ScanCancelled, ScanControl, ScanProgress
 
@@ -39,6 +41,7 @@ type Result = (
     | MembersPage
     | Review
     | CleanupResult
+    | MonitorData
 )
 type Progress = ScanProgress | DuplicateProgress
 type Job = Callable[[Callable[[Progress], None]], Result]
@@ -76,6 +79,8 @@ class ScanController(QObject):
     members_ready = Signal(object)
     review_ready = Signal(object)
     cleanup_ready = Signal(object)
+    monitor_ready = Signal(object)
+    monitor_busy = Signal(bool)
     failed = Signal(str)
     busy_changed = Signal(bool)
     idle = Signal()
@@ -91,6 +96,13 @@ class ScanController(QObject):
         self._duplicate_store = DuplicateStore(self._repository)
         self._duplicates = DuplicateService(self._duplicate_store)
         self._cleanup = CleanupService(self._repository)
+        self._monitor = MonitorService(self._repository, database_path)
+        self._monitor_selected: int | None = None
+        self._monitor_active = True
+        self._monitor_work = False
+        self._monitor_timer = QTimer(self)
+        self._monitor_timer.setInterval(2000)
+        self._monitor_timer.timeout.connect(self._monitor_tick)
         self._pool = QThreadPool(self)
         self._pool.setMaxThreadCount(1)
         self._task: _Task | None = None
@@ -253,6 +265,57 @@ class ScanController(QObject):
     def load_cleanup_audit(self, after: tuple[str, str, str] | None = None) -> bool:
         return self._cleanup_job(lambda _: self._cleanup.audit(after))
 
+    def start_monitor(self) -> None:
+        if not self._monitor_timer.isActive() and not self._closing:
+            self._monitor_timer.start()
+
+    def _monitor_tick(self) -> None:
+        if self._monitor_active and QApplication.activeModalWidget() is None:
+            self.monitor_poll(self._monitor_selected)
+
+    def _monitor_job(self, action: Callable[[ScanControl], MonitorData]) -> bool:
+        if self._task is not None or self._closing:
+            return False
+        control = ScanControl()
+        self._control = control
+        self._monitor_work = True
+        self.monitor_busy.emit(True)
+
+        def run(_: Callable[[Progress], None]) -> MonitorData:
+            self._initialize()
+            return action(control)
+
+        self._submit(run)
+        return True
+
+    def monitor_poll(self, root_id: int | None, *, reconcile: bool = False) -> bool:
+        self._monitor_selected = root_id
+        return self._monitor_job(
+            lambda control: self._monitor.poll(
+                root_id, control, force=root_id if reconcile else None
+            )
+        )
+
+    def configure_monitor(
+        self,
+        root_id: int | None,
+        path: str,
+        enabled: bool,
+        interval: int,
+        threshold: int,
+        cooldown: int,
+    ) -> bool:
+        def configure(control: ScanControl) -> MonitorData:
+            identifier = self._monitor.configure(
+                root_id, path, enabled, interval, threshold, cooldown
+            )
+            return self._monitor.poll(identifier, control, force=identifier if enabled else None)
+
+        return self._monitor_job(configure)
+
+    def remove_monitor(self, root_id: int) -> bool:
+        return self._monitor_job(lambda _: self._monitor.remove(root_id))
+
     @Slot(object)
     def _report(self, progress: Progress) -> None:
         if isinstance(progress, ScanProgress):
@@ -263,6 +326,9 @@ class ScanController(QObject):
     def _complete(self) -> None:
         self._task = None
         self._control = None
+        if self._monitor_work:
+            self._monitor_work = False
+            self.monitor_busy.emit(False)
         self.busy_changed.emit(False)
 
     @Slot(object)
@@ -281,6 +347,10 @@ class ScanController(QObject):
                 self.review_ready.emit(result)
             elif isinstance(result, (Candidates, CleanupPlan, CleanupAudit)):
                 self.cleanup_ready.emit(result)
+            elif isinstance(result, MonitorData):
+                self._monitor_active = any(root.enabled for root in result.roots)
+                self._monitor_selected = result.selected
+                self.monitor_ready.emit(result)
             else:
                 self.history_ready.emit(result)
         if self._task is None:
@@ -296,6 +366,7 @@ class ScanController(QObject):
 
     def close(self) -> bool:
         self._closing = True
+        self._monitor_timer.stop()
         if self._task is not None:
             self.cancel()
             return False
@@ -305,7 +376,9 @@ class ScanController(QObject):
     def shutdown(self) -> None:
         """Drain the worker if the application event loop has already exited."""
         self._closing = True
+        self._monitor_timer.stop()
         self.cancel()
         self._pool.waitForDone()
+        self._monitor.close()
         self._repository.close()
         self._lock.unlock()

@@ -48,9 +48,17 @@
 - [x] Verified the confirmation and audit flow offscreen. A separate Windows test verified a locked file stayed in place, then recycled and restored the same disposable fixture. The native junction test passed separately.
 - [x] Passed Ruff, strict mypy with Windows and Linux platform settings, and 31 tests in the sandbox. Five link-fixture tests were skipped in the sandbox.
 
+## Phase 6 · Monitoring
+
+- [x] Added watchdog-backed folder watches, watch settings, pause and resume, and removal.
+- [x] Added bounded event delivery, modification debouncing, stale tracking, and periodic reconciliation.
+- [x] Added SQLite schema version 4 for events and snapshots, a growth chart, and in-app alerts with a persistent cooldown.
+- [x] Verified real create, modify, move and delete events, quiet-backend reconciliation, overflow recovery, and observer shutdown on Windows.
+- [x] Verified the offscreen monitoring UI from adding a folder through a growth alert and pause.
+
 ## Pending
 
-Phase 6 introduces filesystem monitoring, reconciliation, storage history, and growth notifications. Phases 6–8 are tracked in the [implementation plan](docs/IMPLEMENTATION_PLAN.md).
+Phase 7 introduces explainable storage recommendations. Phases 7–8 are tracked in the [implementation plan](docs/IMPLEMENTATION_PLAN.md).
 
 ## Known limitations
 

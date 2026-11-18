@@ -1,6 +1,6 @@
 # DiskSense architecture
 
-Phase 5 includes the Qt shell, background scanner, local history, storage analytics, duplicate review, and cleanup with a Recycle Bin audit. The contracts below use Python domain values such as `Path`, immutable dataclasses, integer byte counts, UTC timestamps, and opaque record IDs.
+Phase 6 adds folder monitoring and storage history to the scanner, analytics, duplicate review, and audited cleanup. The contracts below use Python domain values such as `Path`, immutable dataclasses, integer byte counts, UTC timestamps, and opaque record IDs.
 
 ```mermaid
 flowchart LR
@@ -24,7 +24,7 @@ The diagram shows the target architecture. Phase 2 uses `ScanController` to sche
 | Explorer | `InventoryReader.read(query) -> InventoryResult` | Return a page of up to 200 entries plus an optional folder overview containing aggregates, chart inputs, and live volume capacity. Keyset cursors use the selected sort value and the full relative path as a stable tie-breaker. |
 | Duplicates | `DuplicateService.detect(request, control, report) -> DuplicateReport`; `DuplicateStore.members(run_id, group_id, after, keep) -> MembersPage` | Narrow candidates by size, sampled xxHash and streamed SHA-256. Provide checked previews, comparison, and one keeper per group. Phase 5 will repeat byte verification before any duplicate-based removal. |
 | Cleanup | `CleanupService.preview(scan_id, rules, paths) -> CleanupPlan`; `execute(token, control) -> CleanupAudit` | Confirmation binds to a single-use preview token. Revalidate each eligible file before recycling and audit each outcome. |
-| Monitor | `watch(root) -> WatchId`; `unwatch(watch_id)`; `reconcile(watch_id, control) -> Snapshot` | Convert observer callbacks into normalized events via a bounded queue. Mark roots dirty on overflow or missed events and reconcile periodically. |
+| Monitor | `MonitorService.configure(...)`; `poll(selected, control, force=...)`; `remove(root_id)` | Keep watch settings, normalize filesystem events, reconcile folder totals, and report new growth alerts. |
 | Recommendations | `Rule.evaluate(context, thresholds) -> Iterable[Recommendation]`; `dismiss(recommendation_id)` | Rules emit stable keys, evidence, explanation, risk and optional estimated savings. Query context exposes bounded aggregates and candidate pages. Persist dismissals against the evidence fingerprint. |
 | Platform | `stat_entry(path) -> EntryIdentity`; `volume_usage(path) -> VolumeUsage`; `recycle(validated_target) -> RecycleOutcome` | Isolate filesystem identity, reparse-point handling, allocation support and native recycle operations. Return explicit results for unsupported operations and uncertain outcomes. |
 
@@ -39,7 +39,7 @@ Keep core modules independent of Qt and SQLAlchemy. Use protocols at I/O boundar
 | `duplicate_runs`, `duplicate_groups`, `duplicate_members` | Schema version 2. A run references its scan. Staged members are keyed by run and relative path. Index size/sample and size/full digest. Published groups store counts, potential savings and keeper choice. |
 | `hash_cache` | Absolute path key, versioned file fingerprint, sample digest, optional full digest, and last access. Prune records after 30 days and retain up to 250,000 entries after a successful run. |
 | `cleanup_operations`, `cleanup_items` | Schema version 3. Plan ID, approval time, scope, reason, result, and native error. Index operation and timestamp. Audit survives scan pruning and is retained for 365 days. |
-| `watch_roots`, `monitor_events`, `storage_snapshots` | Per-root time indexes, event kind and paths, snapshot totals and reconciliation status. |
+| `watch_roots`, `watch_events`, `storage_snapshots` | Watch preferences and alert baselines, indexed per-root event history, and snapshot totals and reconciliation status. |
 | `recommendations`, `settings` | Stable recommendation key and evidence fingerprint with dismissal state. Unique settings key with validated typed values. |
 
 SQLite uses `PRAGMA user_version`, foreign keys, WAL, and a five-second busy timeout. The application acquires a per-database `QLockFile` before migration or interrupted-run recovery. A single Qt worker serializes database work. SQLAlchemy sessions are short-lived, and scan batches contain up to 512 rows. The scan's final transaction publishes a completed or partial snapshot. Cancellation and failure discard staged rows, while abandoned running scans are marked interrupted at next database open. Future analytics should filter snapshot states explicitly. [SQLAlchemy SQLite dialect](https://docs.sqlalchemy.org/en/20/dialects/sqlite.html)
@@ -61,6 +61,14 @@ SQLite stages paths whose inventory size is shared by another file. The worker r
 Before and after hashing or previewing, the worker checks path components and file metadata. It compares the open handle with the saved inventory and rechecks the path after the read. The cache fingerprint includes file identity, size, modification time and a change token. Windows reads `ChangeTime` from the open file handle. The worker bypasses the cache when file identity or the change token is missing. Digests and metadata are stored locally. Preview contents exist in memory only. [Windows file metadata](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_basic_info)
 
 Known hard links collapse to a single physical copy. A group with only one known physical copy is omitted. The logical estimate includes only non-keeper files with known identity and a single link. The default prefers keeping a multiply linked or unidentifiable file when one exists. Allocated space can differ from logical size. A live byte comparison is a point-in-time observation, and any future cleanup must verify the keeper and candidates again.
+
+## Monitoring and reconciliation
+
+Schema version 4 adds watch settings, filesystem events, and storage snapshots. Each watch retains the latest 2,000 events and 2,000 samples. A watch can be paused while retaining its history. Enabled watches resume when DiskSense reopens. The monitor supports up to 32 folders.
+
+Watchdog callbacks hand off create, modify, move, and delete events without touching SQLite or the GUI. The dispatcher queue holds up to 4,096 events and the worker handoff holds up to 2,048. A dropped event marks the affected watch stale and records an overflow marker. A dispatcher overflow marks all enabled watches stale because it occurs before dispatch identifies the watch. Recent repeated modifications for the same path are debounced. DiskSense excludes its own SQLite files and lock from monitoring.
+
+A two-second Qt timer requests work on the existing storage worker. Each turn reconciles at most one folder. Event hints can advance the next sample, and periodic inventory scans also run on quiet folders to account for missed events. The storage chart uses complete samples, while the list identifies incomplete or unavailable samples. Growth alerts compare against the saved baseline and honor a persisted cooldown. Alerts appear in the app and stay visible in sample history. Monitoring relies on the running DiskSense process. [Watchdog API](https://python-watchdog.readthedocs.io/en/stable/api.html)
 
 ## Cleanup execution and recovery
 

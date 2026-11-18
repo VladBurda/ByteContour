@@ -170,6 +170,48 @@ class CleanupItem(Base):
     detail: Mapped[str]
 
 
+class WatchRoot(Base):
+    __tablename__ = "watch_roots"
+    __table_args__ = {"sqlite_autoincrement": True}
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    path: Mapped[str]
+    key: Mapped[str] = mapped_column(unique=True)
+    enabled: Mapped[bool]
+    interval: Mapped[int]
+    threshold: Mapped[int] = mapped_column(BigInteger)
+    cooldown: Mapped[int]
+    status: Mapped[str]
+    baseline: Mapped[int | None] = mapped_column(BigInteger)
+    last_alert: Mapped[float | None]
+
+
+class WatchEvent(Base):
+    __tablename__ = "watch_events"
+    __table_args__ = (Index("ix_watch_events_root_id", "root_id", "id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    root_id: Mapped[int] = mapped_column(ForeignKey("watch_roots.id", ondelete="CASCADE"))
+    observed: Mapped[float]
+    kind: Mapped[str]
+    source: Mapped[str]
+    destination: Mapped[str | None]
+
+
+class StorageSnapshot(Base):
+    __tablename__ = "storage_snapshots"
+    __table_args__ = (Index("ix_storage_snapshots_root_id", "root_id", "id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    root_id: Mapped[int] = mapped_column(ForeignKey("watch_roots.id", ondelete="CASCADE"))
+    observed: Mapped[float]
+    files: Mapped[int]
+    logical: Mapped[int] = mapped_column(BigInteger)
+    allocated: Mapped[int | None] = mapped_column(BigInteger)
+    error: Mapped[str | None]
+    growth_alert: Mapped[int | None] = mapped_column(BigInteger)
+
+
 @dataclass(frozen=True, slots=True)
 class ScanSummary:
     id: int
@@ -240,10 +282,25 @@ def _create_cleanup_schema(connection: Connection) -> None:
     )
 
 
+def _create_monitor_schema(connection: Connection) -> None:
+    Base.metadata.create_all(
+        connection,
+        tables=[
+            Base.metadata.tables[name]
+            for name in (
+                "watch_roots",
+                "watch_events",
+                "storage_snapshots",
+            )
+        ],
+    )
+
+
 _MIGRATIONS: tuple[Callable[[Connection], None], ...] = (
     _create_schema,
     _create_duplicate_schema,
     _create_cleanup_schema,
+    _create_monitor_schema,
 )
 SCHEMA_VERSION = len(_MIGRATIONS)
 _ENTRY_FIELDS = tuple(field.name for field in fields(Entry))

@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "A local desktop application for understanding disk usage"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["PySide6-Essentials>=6.8,<7", "SQLAlchemy>=2.0,<2.1", "xxhash>=3.5,<4"]
+dependencies = [
+    "PySide6-Essentials>=6.8,<7", "SQLAlchemy>=2.0,<2.1", "watchdog>=6,<8", "xxhash>=3.5,<4",
+]
 
 [project.gui-scripts]
 disksense = "disksense.main:main"

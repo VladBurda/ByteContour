@@ -153,8 +153,9 @@ def _entry(path: str, info: os.stat_result, directory: _Directory | None = None)
 class Inventory:
     """A single scan. Live iterators scale with tree depth and batches have a fixed cap."""
 
-    def __init__(self, root: Path) -> None:
+    def __init__(self, root: Path, exclude: Callable[[str], bool] | None = None) -> None:
         self.root = root
+        self._exclude = exclude
         self.started = monotonic()
         self.files = self.directories = self.logical = self.skipped = self.errors = 0
         self.allocated: int | None = 0 if os.name != "nt" else None
@@ -244,6 +245,8 @@ class Inventory:
             return self._finish_directory(stack, ancestors)
 
         relative = f"{frame.relative}/{child.name}" if frame.relative else child.name
+        if self._exclude is not None and self._exclude(relative):
+            return None
         native_path = _native_path(child.path)
         try:
             # On Windows DirEntry.stat omits file identity and link count.

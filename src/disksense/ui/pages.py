@@ -49,7 +49,7 @@ PAGES = (
         "utilities-system-monitor",
         "Track changes in selected folders",
         "No monitored folders",
-        "Folder monitoring is planned for Phase 6.",
+        "Choose a folder to start collecting storage history.",
     ),
     Page(
         "Recommendations",

@@ -7,18 +7,21 @@ from PySide6.QtGui import QAction, QCloseEvent, QKeySequence, QShowEvent
 from PySide6.QtWidgets import QHBoxLayout, QMainWindow, QStackedWidget, QTabWidget, QWidget
 
 from disksense.database import ScanSummary
+from disksense.monitor import MonitorData
 from disksense.ui.cleanup_view import CleanupView
 from disksense.ui.duplicate_view import DuplicateView
 from disksense.ui.explorer import Dashboard, Explorer
+from disksense.ui.monitor_view import MonitorView
 from disksense.ui.pages import PAGES, build_page
 from disksense.ui.scan_controller import ScanController
-from disksense.ui.scan_views import HistoryView, ScanView
+from disksense.ui.scan_views import HistoryView, ScanView, _size
 from disksense.ui.sidebar import Sidebar
 
 _COLLAPSED_KEY = "ui/sidebarCollapsed"
 _EXPLORER = 1
 _DUPLICATES = 2
 _CLEANUP = 3
+_MONITOR = 4
 _HISTORY = 6
 
 
@@ -42,6 +45,8 @@ class MainWindow(QMainWindow):
         self.dashboard = Dashboard(self.scan_controller)
         self.duplicates = DuplicateView(self.scan_controller, self._settings)
         self.cleanup = CleanupView(self.scan_controller, self._settings)
+        self.monitor = MonitorView(self.scan_controller)
+        self.scan_controller.monitor_ready.connect(self._growth_alert)
         self._explorer_tabs = QTabWidget()
         self._explorer_tabs.addTab(self.scan_view, "Scan")
         self._explorer_tabs.addTab(self.explorer, "Inventory")
@@ -88,6 +93,8 @@ class MainWindow(QMainWindow):
                 widget = self.duplicates
             elif index == _CLEANUP:
                 widget = self.cleanup
+            elif index == _MONITOR:
+                widget = self.monitor
             elif index == _HISTORY:
                 widget = self.history_view
             else:
@@ -113,6 +120,8 @@ class MainWindow(QMainWindow):
             self.duplicates.activate()
         elif index == _CLEANUP:
             self.cleanup.activate()
+        elif index == _MONITOR:
+            self.monitor.activate()
 
     @Slot(int)
     def _show_inventory(self, tab: int) -> None:
@@ -154,7 +163,14 @@ class MainWindow(QMainWindow):
 
     def showEvent(self, event: QShowEvent, /) -> None:
         super().showEvent(event)
+        self.scan_controller.start_monitor()
         QTimer.singleShot(0, self._load_dashboard)
+
+    @Slot(object)
+    def _growth_alert(self, data: MonitorData) -> None:
+        if data.alert is not None:
+            root, growth = data.alert
+            self.statusBar().showMessage(f"Storage grew by {_size(growth)} · {root}", 15000)
 
     def _load_dashboard(self) -> None:
         if self.isVisible() and self._pages.currentIndex() == 0:
