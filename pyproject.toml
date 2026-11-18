@@ -1,0 +1,38 @@
+[project]
+name = "disksense"
+version = "0.1.0"
+description = "A local desktop application for understanding disk usage"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["PySide6-Essentials>=6.8,<7", "SQLAlchemy>=2.0,<2.1", "xxhash>=3.5,<4"]
+
+[project.gui-scripts]
+disksense = "disksense.main:main"
+
+[dependency-groups]
+dev = ["mypy>=1.15", "pytest>=8.3", "pytest-qt>=4.4", "ruff>=0.11"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/disksense"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = [".uv-cache", "disksense-benchmark-*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests", "benchmarks"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+qt_api = "pyside6"
+addopts = "--strict-config --strict-markers"
