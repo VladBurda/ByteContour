@@ -1,7 +1,9 @@
+import os
 from collections.abc import Callable, Iterator
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Event
+from time import time
 
 import pytest
 from PySide6.QtCore import QSettings, Qt
@@ -419,3 +421,32 @@ def test_storage_monitor_alert_and_pause(qtbot: QtBot, window: MainWindow, tmp_p
     view.toggle.click()
     qtbot.waitUntil(lambda: view.status.text() == "Paused")
     assert not view.sample.isEnabled()
+
+
+def test_recommendations_dismiss_and_restore(
+    qtbot: QtBot, window: MainWindow, tmp_path: Path
+) -> None:
+    root = tmp_path / "sample"
+    root.mkdir()
+    old = time() - 40 * 86400
+    for index in range(10):
+        path = root / f"{index}.tmp"
+        path.write_bytes(b"temporary")
+        os.utime(path, (old, old))
+    window.navigate(1)
+    window.scan_view.root.setText(str(root))
+    qtbot.waitUntil(window.scan_view.start.isEnabled)
+    window.scan_view.start.click()
+    qtbot.waitUntil(lambda: window.scan_view.status.text() == "Scan completed")
+    window.navigate(5)
+    view = window.recommendations
+    qtbot.waitUntil(lambda: view.model.rowCount() == 1)
+    assert "10 temporary files" in view.details.text()
+    assert view.model.index(0, 1).data() == "Medium"
+    view.dismiss.click()
+    qtbot.waitUntil(lambda: view.model.rowCount() == 0)
+    view.show_dismissed.setChecked(True)
+    assert view.dismiss.text() == "Restore recommendation"
+    view.dismiss.click()
+    qtbot.waitUntil(lambda: view.dismiss.text() == "Dismiss")
+    assert len(list(root.iterdir())) == 10

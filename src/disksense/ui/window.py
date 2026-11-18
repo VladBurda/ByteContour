@@ -13,6 +13,7 @@ from disksense.ui.duplicate_view import DuplicateView
 from disksense.ui.explorer import Dashboard, Explorer
 from disksense.ui.monitor_view import MonitorView
 from disksense.ui.pages import PAGES, build_page
+from disksense.ui.recommendation_view import RecommendationView
 from disksense.ui.scan_controller import ScanController
 from disksense.ui.scan_views import HistoryView, ScanView, _size
 from disksense.ui.sidebar import Sidebar
@@ -22,6 +23,7 @@ _EXPLORER = 1
 _DUPLICATES = 2
 _CLEANUP = 3
 _MONITOR = 4
+_RECOMMENDATIONS = 5
 _HISTORY = 6
 
 
@@ -46,6 +48,7 @@ class MainWindow(QMainWindow):
         self.duplicates = DuplicateView(self.scan_controller, self._settings)
         self.cleanup = CleanupView(self.scan_controller, self._settings)
         self.monitor = MonitorView(self.scan_controller)
+        self.recommendations = RecommendationView(self.scan_controller, self._settings)
         self.scan_controller.monitor_ready.connect(self._growth_alert)
         self._explorer_tabs = QTabWidget()
         self._explorer_tabs.addTab(self.scan_view, "Scan")
@@ -95,6 +98,8 @@ class MainWindow(QMainWindow):
                 widget = self.cleanup
             elif index == _MONITOR:
                 widget = self.monitor
+            elif index == _RECOMMENDATIONS:
+                widget = self.recommendations
             elif index == _HISTORY:
                 widget = self.history_view
             else:
@@ -122,6 +127,8 @@ class MainWindow(QMainWindow):
             self.cleanup.activate()
         elif index == _MONITOR:
             self.monitor.activate()
+        elif index == _RECOMMENDATIONS:
+            self.recommendations.activate()
 
     @Slot(int)
     def _show_inventory(self, tab: int) -> None:

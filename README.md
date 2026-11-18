@@ -53,6 +53,12 @@ Open **Storage Monitor**, browse to a folder, and choose **Watch folder**. DiskS
 
 Watches run while DiskSense is open. Pausing a watch retains its history. Enabled watches resume when the app reopens. Reconciliation measures the current folder even if the watch missed events while DiskSense was closed.
 
+## Review recommendations
+
+Open **Recommendations** to see large files with old modification dates, watched folder growth, duplicate groups, installers in Downloads, and concentrations of old temporary files. Select a row to see the evidence, risk level, and suggested review step. Scan-based rules use the latest saved inventory, and growth uses complete monitoring samples within the configured time window.
+
+Use **Edit thresholds** to tune the rules. **Dismiss** hides a recommendation with the same recorded evidence across restarts. Use **Show dismissed** to review or restore it. Duplicate suggestions show potential savings based on keeper and hard-link checks. The other rules show evidence for review.
+
 ## Development
 
 ```powershell

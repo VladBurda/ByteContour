@@ -56,7 +56,7 @@ PAGES = (
         "dialog-information",
         "Review suggestions for recovering storage",
         "No recommendations",
-        "Storage recommendations are planned for Phase 7.",
+        "Review evidence from saved inventories and watched folders.",
     ),
     Page(
         "Scan History",

@@ -56,9 +56,16 @@
 - [x] Verified real create, modify, move and delete events, quiet-backend reconciliation, overflow recovery, and observer shutdown on Windows.
 - [x] Verified the offscreen monitoring UI from adding a folder through a growth alert and pause.
 
+## Phase 7 · Recommendations
+
+- [x] Added five configurable rules covering old large files, growth, duplicates, Downloads installers, and old temporary file clusters.
+- [x] Added evidence explanations, risk levels, duplicate savings estimates, editable thresholds, and dismissal and restore controls.
+- [x] Added SQLite schema version 5 for evidence-specific dismissals and verified persistence across restart.
+- [x] Tested threshold boundaries, a custom rule, incomplete monitoring samples, and the offscreen dismissal flow.
+
 ## Pending
 
-Phase 7 introduces explainable storage recommendations. Phases 7–8 are tracked in the [implementation plan](docs/IMPLEMENTATION_PLAN.md).
+Phase 8 covers performance review, packaging, and release preparation. See the [implementation plan](docs/IMPLEMENTATION_PLAN.md).
 
 ## Known limitations
 

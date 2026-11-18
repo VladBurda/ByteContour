@@ -1,6 +1,6 @@
 # DiskSense architecture
 
-Phase 6 adds folder monitoring and storage history to the scanner, analytics, duplicate review, and audited cleanup. The contracts below use Python domain values such as `Path`, immutable dataclasses, integer byte counts, UTC timestamps, and opaque record IDs.
+Phase 7 adds recommendations based on scan inventories, duplicate results, and storage history. The contracts below use Python domain values such as `Path`, immutable dataclasses, integer byte counts, UTC timestamps, and opaque record IDs.
 
 ```mermaid
 flowchart LR
@@ -25,7 +25,7 @@ The diagram shows the target architecture. Phase 2 uses `ScanController` to sche
 | Duplicates | `DuplicateService.detect(request, control, report) -> DuplicateReport`; `DuplicateStore.members(run_id, group_id, after, keep) -> MembersPage` | Narrow candidates by size, sampled xxHash and streamed SHA-256. Provide checked previews, comparison, and one keeper per group. Phase 5 will repeat byte verification before any duplicate-based removal. |
 | Cleanup | `CleanupService.preview(scan_id, rules, paths) -> CleanupPlan`; `execute(token, control) -> CleanupAudit` | Confirmation binds to a single-use preview token. Revalidate each eligible file before recycling and audit each outcome. |
 | Monitor | `MonitorService.configure(...)`; `poll(selected, control, force=...)`; `remove(root_id)` | Keep watch settings, normalize filesystem events, reconcile folder totals, and report new growth alerts. |
-| Recommendations | `Rule.evaluate(context, thresholds) -> Iterable[Recommendation]`; `dismiss(recommendation_id)` | Rules emit stable keys, evidence, explanation, risk and optional estimated savings. Query context exposes bounded aggregates and candidate pages. Persist dismissals against the evidence fingerprint. |
+| Recommendations | `Rule.evaluate(context, thresholds) -> Iterable[Recommendation]`; `RecommendationService.set_dismissed(item, dismissed)` | Rules emit stable keys, evidence, explanations, risk, and optional estimates. Dismissals bind to the evidence fingerprint. |
 | Platform | `stat_entry(path) -> EntryIdentity`; `volume_usage(path) -> VolumeUsage`; `recycle(validated_target) -> RecycleOutcome` | Isolate filesystem identity, reparse-point handling, allocation support and native recycle operations. Return explicit results for unsupported operations and uncertain outcomes. |
 
 Keep core modules independent of Qt and SQLAlchemy. Use protocols at I/O boundaries when an implementation and a test double need the same contract. Controllers submit jobs to a bounded pool and deliver results via queued Qt signals. Qt models change only on the main thread. Throttle progress updates and ignore stale responses after query or scan selection changes. Use a shutdown coordinator that cancels work, unpauses workers, stops observers, and drains or closes resources in ownership order.
@@ -40,7 +40,7 @@ Keep core modules independent of Qt and SQLAlchemy. Use protocols at I/O boundar
 | `hash_cache` | Absolute path key, versioned file fingerprint, sample digest, optional full digest, and last access. Prune records after 30 days and retain up to 250,000 entries after a successful run. |
 | `cleanup_operations`, `cleanup_items` | Schema version 3. Plan ID, approval time, scope, reason, result, and native error. Index operation and timestamp. Audit survives scan pruning and is retained for 365 days. |
 | `watch_roots`, `watch_events`, `storage_snapshots` | Watch preferences and alert baselines, indexed per-root event history, and snapshot totals and reconciliation status. |
-| `recommendations`, `settings` | Stable recommendation key and evidence fingerprint with dismissal state. Unique settings key with validated typed values. |
+| `recommendation_dismissals` | Composite key of recommendation identity and evidence fingerprint, with dismissal time. |
 
 SQLite uses `PRAGMA user_version`, foreign keys, WAL, and a five-second busy timeout. The application acquires a per-database `QLockFile` before migration or interrupted-run recovery. A single Qt worker serializes database work. SQLAlchemy sessions are short-lived, and scan batches contain up to 512 rows. The scan's final transaction publishes a completed or partial snapshot. Cancellation and failure discard staged rows, while abandoned running scans are marked interrupted at next database open. Future analytics should filter snapshot states explicitly. [SQLAlchemy SQLite dialect](https://docs.sqlalchemy.org/en/20/dialects/sqlite.html)
 
@@ -61,6 +61,12 @@ SQLite stages paths whose inventory size is shared by another file. The worker r
 Before and after hashing or previewing, the worker checks path components and file metadata. It compares the open handle with the saved inventory and rechecks the path after the read. The cache fingerprint includes file identity, size, modification time and a change token. Windows reads `ChangeTime` from the open file handle. The worker bypasses the cache when file identity or the change token is missing. Digests and metadata are stored locally. Preview contents exist in memory only. [Windows file metadata](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_basic_info)
 
 Known hard links collapse to a single physical copy. A group with only one known physical copy is omitted. The logical estimate includes only non-keeper files with known identity and a single link. The default prefers keeping a multiply linked or unidentifiable file when one exists. Allocated space can differ from logical size. A live byte comparison is a point-in-time observation, and any future cleanup must verify the keeper and candidates again.
+
+## Recommendations
+
+The storage worker evaluates a sequence of trusted, read-only rules implementing `Rule.evaluate(context, thresholds)`. The context supplies a database session, latest completed or partial inventory, duplicate reader, and evaluation time. Rules use SQL aggregation and bounded result sets. Growth compares the earliest and latest complete samples within the configured window. Partial inventories are identified in the UI.
+
+Each result includes its scope, evidence, risk, and suggested review step. Only the duplicate rule reports potential savings, using the existing keeper and hard-link calculations. Recommendations can write dismissal metadata and have no cleanup dispatch route. Schema version 5 stores dismissals by rule and scope plus an evidence fingerprint. A material evidence change can bring back the recommendation. Qt settings retain thresholds.
 
 ## Monitoring and reconciliation
 

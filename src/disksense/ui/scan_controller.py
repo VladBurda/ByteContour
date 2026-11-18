@@ -20,6 +20,12 @@ from disksense.duplicate_store import (
 from disksense.duplicates import DuplicateService, Review
 from disksense.inventory import InventoryQuery, InventoryReader, InventoryResult
 from disksense.monitor import MonitorData, MonitorService
+from disksense.recommendations import (
+    Recommendation,
+    RecommendationPage,
+    RecommendationService,
+    Thresholds,
+)
 from disksense.scan_service import ScanService
 from disksense.scanner import ScanCancelled, ScanControl, ScanProgress
 
@@ -42,6 +48,7 @@ type Result = (
     | Review
     | CleanupResult
     | MonitorData
+    | RecommendationPage
 )
 type Progress = ScanProgress | DuplicateProgress
 type Job = Callable[[Callable[[Progress], None]], Result]
@@ -80,6 +87,7 @@ class ScanController(QObject):
     review_ready = Signal(object)
     cleanup_ready = Signal(object)
     monitor_ready = Signal(object)
+    recommendations_ready = Signal(object)
     monitor_busy = Signal(bool)
     failed = Signal(str)
     busy_changed = Signal(bool)
@@ -97,6 +105,7 @@ class ScanController(QObject):
         self._duplicates = DuplicateService(self._duplicate_store)
         self._cleanup = CleanupService(self._repository)
         self._monitor = MonitorService(self._repository, database_path)
+        self._recommendations = RecommendationService(self._repository)
         self._monitor_selected: int | None = None
         self._monitor_active = True
         self._monitor_work = False
@@ -316,6 +325,21 @@ class ScanController(QObject):
     def remove_monitor(self, root_id: int) -> bool:
         return self._monitor_job(lambda _: self._monitor.remove(root_id))
 
+    def load_recommendations(
+        self, thresholds: Thresholds, item: Recommendation | None = None, dismissed: bool = False
+    ) -> bool:
+        if self._task is not None or self._closing:
+            return False
+
+        def load(_: Callable[[Progress], None]) -> RecommendationPage:
+            self._initialize()
+            if item is not None:
+                self._recommendations.set_dismissed(item, dismissed)
+            return self._recommendations.read(thresholds)
+
+        self._submit(load)
+        return True
+
     @Slot(object)
     def _report(self, progress: Progress) -> None:
         if isinstance(progress, ScanProgress):
@@ -351,6 +375,8 @@ class ScanController(QObject):
                 self._monitor_active = any(root.enabled for root in result.roots)
                 self._monitor_selected = result.selected
                 self.monitor_ready.emit(result)
+            elif isinstance(result, RecommendationPage):
+                self.recommendations_ready.emit(result)
             else:
                 self.history_ready.emit(result)
         if self._task is None:

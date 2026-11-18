@@ -212,6 +212,14 @@ class StorageSnapshot(Base):
     growth_alert: Mapped[int | None] = mapped_column(BigInteger)
 
 
+class RecommendationDismissal(Base):
+    __tablename__ = "recommendation_dismissals"
+
+    key: Mapped[str] = mapped_column(primary_key=True)
+    fingerprint: Mapped[str] = mapped_column(primary_key=True)
+    dismissed_at: Mapped[str]
+
+
 @dataclass(frozen=True, slots=True)
 class ScanSummary:
     id: int
@@ -296,11 +304,16 @@ def _create_monitor_schema(connection: Connection) -> None:
     )
 
 
+def _create_recommendation_schema(connection: Connection) -> None:
+    Base.metadata.tables["recommendation_dismissals"].create(connection, checkfirst=True)
+
+
 _MIGRATIONS: tuple[Callable[[Connection], None], ...] = (
     _create_schema,
     _create_duplicate_schema,
     _create_cleanup_schema,
     _create_monitor_schema,
+    _create_recommendation_schema,
 )
 SCHEMA_VERSION = len(_MIGRATIONS)
 _ENTRY_FIELDS = tuple(field.name for field in fields(Entry))
