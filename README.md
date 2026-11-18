@@ -1,6 +1,14 @@
-# DiskSense
+# ByteContour
 
-DiskSense inventories folders and drives, compares rescans, visualizes saved storage usage, finds duplicate files, and previews cleanup. Scan metadata, hash digests and cleanup audit records stay in a local SQLite database.
+ByteContour inventories folders and drives, compares rescans, visualizes saved storage usage, finds duplicate files, and previews cleanup. Scan metadata, hash digests and cleanup audit records stay in a local SQLite database.
+
+![ByteContour dashboard with a sample storage treemap](docs/screenshots/dashboard.png)
+
+The app uses Python, PySide6, SQLAlchemy, SQLite, watchdog, and xxHash. Qt workers handle scanning, hashing, and reconciliation. See [Architecture](docs/ARCHITECTURE.md) for module boundaries and design trade-offs.
+
+## Install on Windows
+
+Extract the Windows x64 ZIP and open **ByteContour.exe** from the extracted folder. The bundle includes Python. See the [Windows guide](docs/WINDOWS.md) for profile compatibility and removal instructions.
 
 ## Run locally
 
@@ -8,10 +16,10 @@ Install uv, then run the following in the project directory. uv uses Python 3.13
 
 ```powershell
 uv sync --locked
-uv run python -m disksense
+uv run python -m bytecontour
 ```
 
-Use **Alt+1** through **Alt+8** to switch sections and **Ctrl+B** to collapse or expand the sidebar. DiskSense saves the sidebar preference with Qt's native settings.
+Use **Alt+1** through **Alt+8** to switch sections and **Ctrl+B** to collapse or expand the sidebar. ByteContour saves the sidebar preference with Qt's native settings.
 
 ## Scan a folder or drive
 
@@ -21,7 +29,7 @@ Use **Alt+1** through **Alt+8** to switch sections and **Ctrl+B** to collapse or
 
 Scans record live metadata as files are visited. A partial result identifies an observed access or filesystem error and reports only the data collected. Logical size counts each path, including hard links. Allocated size is reported when the OS exposes block counts and can count shared allocation more than once. Windows currently shows allocated size as unavailable.
 
-On Windows the inventory database lives in DiskSense's per-user local app data directory. DiskSense keeps the five latest finished attempts for each scanned root and preserves the latest complete inventory for comparisons.
+On Windows the inventory database lives in ByteContour's per-user local app data directory. ByteContour keeps the five latest finished attempts for each scanned root and preserves the latest complete inventory for comparisons.
 
 ## Explore storage
 
@@ -45,21 +53,32 @@ Duplicate review is read-only for your files. Rerunning detection replaces the s
 2. Set the age and size thresholds and refresh the list. Select files and choose **Preview selected** to review the complete selection, file sizes and eligibility.
 3. Choose **Send eligible files to Recycle Bin** to confirm. Use **Audit** to see the outcome for each approved file.
 
-DiskSense revalidates files before sending them to the Windows Recycle Bin on supported fixed local drives. For duplicate candidates, it also compares the file with its keeper. Empty folders are review-only. Restore successfully recycled files from the Windows Recycle Bin while Windows retains them. The space estimate describes eventual savings after Windows removes the recycled files.
+ByteContour revalidates files before sending them to the Windows Recycle Bin on supported fixed local drives. For duplicate candidates, it also compares the file with its keeper. Empty folders are review-only. Restore successfully recycled files from the Windows Recycle Bin while Windows retains them. The space estimate describes eventual savings after Windows removes the recycled files.
 
 ## Monitor storage growth
 
-Open **Storage Monitor**, browse to a folder, and choose **Watch folder**. DiskSense records recent changes and samples the folder's size at a configurable interval. Set a growth threshold and cooldown under the selected folder. Growth alerts appear in the app status bar and in **Growth history**. **Reconcile now** refreshes the totals when the storage worker is free.
+Open **Storage Monitor**, browse to a folder, and choose **Watch folder**. ByteContour records recent changes and samples the folder's size at a configurable interval. Set a growth threshold and cooldown under the selected folder. Growth alerts appear in the app status bar and in **Growth history**. **Reconcile now** refreshes the totals when the storage worker is free.
 
-Watches run while DiskSense is open. Pausing a watch retains its history. Enabled watches resume when the app reopens. Reconciliation measures the current folder even if the watch missed events while DiskSense was closed.
+Watches run while ByteContour is open. Pausing a watch retains its history. Enabled watches resume when the app reopens. Reconciliation measures the current folder even if the watch missed events while ByteContour was closed.
 
 ## Review recommendations
+
+![ByteContour recommendation evidence and risk levels](docs/screenshots/recommendations.png)
 
 Open **Recommendations** to see large files with old modification dates, watched folder growth, duplicate groups, installers in Downloads, and concentrations of old temporary files. Select a row to see the evidence, risk level, and suggested review step. Scan-based rules use the latest saved inventory, and growth uses complete monitoring samples within the configured time window.
 
 Use **Edit thresholds** to tune the rules. **Dismiss** hides a recommendation with the same recorded evidence across restarts. Use **Show dismissed** to review or restore it. Duplicate suggestions show potential savings based on keeper and hard-link checks. The other rules show evidence for review.
 
 ## Development
+
+Build the portable Windows x64 package with Python 3.13:
+
+```powershell
+uv sync --locked --python 3.13 --group release
+uv run --no-sync python scripts/build_windows.py
+```
+
+The builder smoke-tests the packaged executable, then writes a ZIP and its SHA-256 checksum to `dist`. The Windows package workflow also makes these available as CI artifacts.
 
 ```powershell
 uv run ruff check .

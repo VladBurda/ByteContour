@@ -1,0 +1,1 @@
+"""ByteContour desktop application."""

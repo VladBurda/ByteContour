@@ -1,7 +1,7 @@
 import json
 import logging
 
-from disksense.logging_config import JsonFormatter
+from bytecontour.logging_config import JsonFormatter
 
 
 def test_structured_diagnostics() -> None:

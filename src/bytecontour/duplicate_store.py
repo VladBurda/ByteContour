@@ -9,7 +9,7 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
-from disksense.database import (
+from bytecontour.database import (
     DuplicateGroup,
     DuplicateMember,
     DuplicateRun,
@@ -18,7 +18,7 @@ from disksense.database import (
     Scan,
     ScanRepository,
 )
-from disksense.file_hashes import FileVersion
+from bytecontour.file_hashes import FileVersion
 
 BATCH = 128
 PAGE = 75

@@ -7,8 +7,15 @@ from pathlib import Path
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from disksense.database import ScanRepository, ScanSummary
-from disksense.scanner import Entry, Inventory, ScanCancelled, ScanControl, ScanProgress, ScanState
+from bytecontour.database import ScanRepository, ScanSummary
+from bytecontour.scanner import (
+    Entry,
+    Inventory,
+    ScanCancelled,
+    ScanControl,
+    ScanProgress,
+    ScanState,
+)
 
 _logger = logging.getLogger(__name__)
 

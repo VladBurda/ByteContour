@@ -6,8 +6,8 @@ from PySide6.QtCore import QPointF, QRectF, Qt, Signal
 from PySide6.QtGui import QColor, QKeyEvent, QMouseEvent, QPainter, QPaintEvent, QPen
 from PySide6.QtWidgets import QLabel, QListWidget, QListWidgetItem, QTabWidget, QVBoxLayout, QWidget
 
-from disksense.inventory import Overview
-from disksense.ui.scan_views import _size
+from bytecontour.inventory import Overview
+from bytecontour.ui.scan_views import _size
 
 _COLORS = ("#295654", "#28465b", "#39476b", "#65486b", "#625347", "#395461")
 

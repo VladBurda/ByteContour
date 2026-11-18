@@ -16,8 +16,8 @@ from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 from watchdog.observers.api import BaseObserver, EventDispatcher, EventQueue, ObservedWatch
 
-from disksense.database import ScanRepository, StorageSnapshot, WatchEvent, WatchRoot
-from disksense.scanner import Inventory, ScanCancelled, ScanControl, _linked, _native_path
+from bytecontour.database import ScanRepository, StorageSnapshot, WatchEvent, WatchRoot
+from bytecontour.scanner import Inventory, ScanCancelled, ScanControl, _linked, _native_path
 
 ROOT_LIMIT = 32
 HISTORY = 120

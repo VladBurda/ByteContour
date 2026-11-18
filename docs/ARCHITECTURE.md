@@ -1,6 +1,10 @@
-# DiskSense architecture
+# ByteContour architecture
 
-Phase 7 adds recommendations based on scan inventories, duplicate results, and storage history. The contracts below use Python domain values such as `Path`, immutable dataclasses, integer byte counts, UTC timestamps, and opaque record IDs.
+ByteContour combines storage scanning, analytics, duplicate review, audited cleanup, monitoring, and recommendations. The contracts below use Python domain values such as `Path`, immutable dataclasses, integer byte counts, UTC timestamps, and opaque record IDs.
+
+The Windows x64 release uses a PyInstaller folder bundle with Qt, SQLite, and the native watchdog backend. The package smoke test launches the executable from an isolated directory with a system-only PATH, then scans and watches a disposable folder. Existing inventories from before the rename stay at their original path with their SQLite sidecars and lock. The app imports prior preferences once. [PyInstaller usage](https://pyinstaller.org/en/stable/usage.html)
+
+The release builder checks collected ICU exports against the symbols Qt imports. If a toolchain DLL shadows the Windows ICU with incompatible symbols, the builder verifies the system exports before removing the incompatible copy from the bundle. [Windows ICU libraries](https://learn.microsoft.com/en-us/windows/win32/intl/international-components-for-unicode--icu-)
 
 ```mermaid
 flowchart LR
@@ -70,11 +74,11 @@ Each result includes its scope, evidence, risk, and suggested review step. Only 
 
 ## Monitoring and reconciliation
 
-Schema version 4 adds watch settings, filesystem events, and storage snapshots. Each watch retains the latest 2,000 events and 2,000 samples. A watch can be paused while retaining its history. Enabled watches resume when DiskSense reopens. The monitor supports up to 32 folders.
+Schema version 4 adds watch settings, filesystem events, and storage snapshots. Each watch retains the latest 2,000 events and 2,000 samples. A watch can be paused while retaining its history. Enabled watches resume when ByteContour reopens. The monitor supports up to 32 folders.
 
-Watchdog callbacks hand off create, modify, move, and delete events without touching SQLite or the GUI. The dispatcher queue holds up to 4,096 events and the worker handoff holds up to 2,048. A dropped event marks the affected watch stale and records an overflow marker. A dispatcher overflow marks all enabled watches stale because it occurs before dispatch identifies the watch. Recent repeated modifications for the same path are debounced. DiskSense excludes its own SQLite files and lock from monitoring.
+Watchdog callbacks hand off create, modify, move, and delete events without touching SQLite or the GUI. The dispatcher queue holds up to 4,096 events and the worker handoff holds up to 2,048. A dropped event marks the affected watch stale and records an overflow marker. A dispatcher overflow marks all enabled watches stale because it occurs before dispatch identifies the watch. Recent repeated modifications for the same path are debounced. ByteContour excludes its own SQLite files and lock from monitoring.
 
-A two-second Qt timer requests work on the existing storage worker. Each turn reconciles at most one folder. Event hints can advance the next sample, and periodic inventory scans also run on quiet folders to account for missed events. The storage chart uses complete samples, while the list identifies incomplete or unavailable samples. Growth alerts compare against the saved baseline and honor a persisted cooldown. Alerts appear in the app and stay visible in sample history. Monitoring relies on the running DiskSense process. [Watchdog API](https://python-watchdog.readthedocs.io/en/stable/api.html)
+A two-second Qt timer requests work on the existing storage worker. Each turn reconciles at most one folder. Event hints can advance the next sample, and periodic inventory scans also run on quiet folders to account for missed events. The storage chart uses complete samples, while the list identifies incomplete or unavailable samples. Growth alerts compare against the saved baseline and honor a persisted cooldown. Alerts appear in the app and stay visible in sample history. Monitoring relies on the running ByteContour process. [Watchdog API](https://python-watchdog.readthedocs.io/en/stable/api.html)
 
 ## Cleanup execution and recovery
 

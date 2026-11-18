@@ -33,10 +33,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from disksense.inventory import Cursor, InventoryQuery, InventoryResult, Item, Sort
-from disksense.ui.scan_controller import ScanController
-from disksense.ui.scan_views import _layout, _note, _size
-from disksense.ui.storage_charts import UsagePanel
+from bytecontour.inventory import Cursor, InventoryQuery, InventoryResult, Item, Sort
+from bytecontour.ui.scan_controller import ScanController
+from bytecontour.ui.scan_views import _layout, _note, _size
+from bytecontour.ui.storage_charts import UsagePanel
 
 _INDEX = QModelIndex()
 _COLUMNS = ("Path", "Logical size", "Allocated size", "Modified", "Type")

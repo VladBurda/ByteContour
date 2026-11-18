@@ -45,7 +45,7 @@ uv run --locked python benchmarks/duplicates.py
 uv run --locked python benchmarks/duplicates.py --pairs 2 --decoys 1 --mib-per-file 32
 ```
 
-The harness creates same-size file pairs with identical bytes and unique same-size decoys. It inventories the fixture before timing. The cold run starts with an empty DiskSense hash cache. The warm run uses the same inventory and cache with live metadata validation. The operating system's filesystem cache stays enabled.
+The harness creates same-size file pairs with identical bytes and unique same-size decoys. It inventories the fixture before timing. The cold run starts with an empty ByteContour hash cache. The warm run uses the same inventory and cache with live metadata validation. The operating system's filesystem cache stays enabled.
 
 | Windows 11 fixture | Groups | Cold time | Cold file bytes read | Warm time | Warm file bytes read |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -53,3 +53,12 @@ The harness creates same-size file pairs with identical bytes and unique same-si
 | 5 files, 32 MiB each | 2 | 0.441 s | 135,200,768 | 0.156 s | 0 |
 
 Cold reads include both sampling and full hashing. The larger-file run used repeated 1 MiB reads. The warm runs recorded 272 and 9 cache hits respectively, counting sample and full stages separately. Both fixtures ran on the local NVMe drive with Python 3.13.18.
+
+## Release profile
+
+```powershell
+uv run --locked python -m cProfile -o build/duplicates.prof benchmarks/duplicates.py
+uv run --locked python -m pstats build/duplicates.prof
+```
+
+The Windows 11 profile of the 144-file fixture recorded 4.32 seconds across both detection passes, including 3.46 cumulative seconds in checked file access. Windows metadata queries and file opens accounted for 1.66 and 1.34 seconds respectively. The warm pass still performed metadata validation while reading zero file-content bytes. These instrumented measurements describe where the time went.

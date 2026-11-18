@@ -9,9 +9,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from disksense.database import SCHEMA_VERSION, InventoryEntry, ScanRepository, ScanSummary
-from disksense.scan_service import ScanService
-from disksense.scanner import BATCH_SIZE, DirectoryEntries, Entry, ScanControl
+from bytecontour.database import SCHEMA_VERSION, InventoryEntry, ScanRepository, ScanSummary
+from bytecontour.scan_service import ScanService
+from bytecontour.scanner import BATCH_SIZE, DirectoryEntries, Entry, ScanControl
 
 
 @pytest.fixture

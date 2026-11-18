@@ -13,7 +13,7 @@ from typing import BinaryIO
 
 import xxhash
 
-from disksense.scanner import ScanControl, _linked, _native_path
+from bytecontour.scanner import ScanControl, _linked, _native_path
 
 SAMPLE_BYTES = 64 * 1024
 CHUNK_BYTES = 1024 * 1024

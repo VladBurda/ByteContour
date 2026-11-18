@@ -9,16 +9,16 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from disksense.database import DuplicateRun, ScanRepository, ScanSummary
-from disksense.duplicate_store import (
+from bytecontour.database import DuplicateRun, ScanRepository, ScanSummary
+from bytecontour.duplicate_store import (
     PAGE,
     DuplicateProgress,
     DuplicateReport,
     DuplicateRequest,
     DuplicateStore,
 )
-from disksense.duplicates import DuplicateService
-from disksense.file_hashes import (
+from bytecontour.duplicates import DuplicateService
+from bytecontour.file_hashes import (
     CHUNK_BYTES,
     SAMPLE_BYTES,
     StaleFile,
@@ -27,8 +27,8 @@ from disksense.file_hashes import (
     full_hash,
     sampled_hash,
 )
-from disksense.scan_service import ScanService
-from disksense.scanner import ScanControl
+from bytecontour.scan_service import ScanService
+from bytecontour.scanner import ScanControl
 
 
 @pytest.fixture

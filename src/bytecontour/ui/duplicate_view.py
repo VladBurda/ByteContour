@@ -22,16 +22,16 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from disksense.duplicate_store import (
+from bytecontour.duplicate_store import (
     DuplicateProgress,
     DuplicateReport,
     DuplicateRequest,
     Member,
     MembersPage,
 )
-from disksense.duplicates import Review
-from disksense.ui.scan_controller import ScanController
-from disksense.ui.scan_views import _layout, _note, _size
+from bytecontour.duplicates import Review
+from bytecontour.ui.scan_controller import ScanController
+from bytecontour.ui.scan_views import _layout, _note, _size
 
 _RULES = "duplicates/exclusions"
 _MINIMUM = "duplicates/minimumBytes"

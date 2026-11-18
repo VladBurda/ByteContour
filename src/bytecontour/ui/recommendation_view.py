@@ -13,10 +13,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from disksense.recommendations import Recommendation, RecommendationPage, Thresholds
-from disksense.ui.duplicate_view import _fill, _table
-from disksense.ui.scan_controller import ScanController
-from disksense.ui.scan_views import _layout, _note, _size
+from bytecontour.recommendations import Recommendation, RecommendationPage, Thresholds
+from bytecontour.ui.duplicate_view import _fill, _table
+from bytecontour.ui.scan_controller import ScanController
+from bytecontour.ui.scan_views import _layout, _note, _size
 
 _FIELDS = (
     ("old_days", "Large file age (days)", 36500),
@@ -68,6 +68,7 @@ class RecommendationView(QWidget):
         self.status = _note()
         layout.addWidget(self.status)
         self.table, self.model = _table(self, ("Recommendation", "Risk", "Logical potential"))
+        self.table.horizontalHeader().setMinimumSectionSize(72)
         self.table.setAccessibleName("Storage recommendations")
         self.table.selectionModel().currentChanged.connect(self._select)
         layout.addWidget(self.table, 1)

@@ -11,11 +11,11 @@ from time import perf_counter
 from PySide6.QtCore import QSettings, QTimer
 from PySide6.QtWidgets import QApplication
 
-from disksense.database import ScanRepository
-from disksense.inventory import PAGE_SIZE, InventoryResult
-from disksense.scanner import Entry, ScanProgress
-from disksense.ui.theme import apply_theme
-from disksense.ui.window import MainWindow
+from bytecontour.database import ScanRepository
+from bytecontour.inventory import PAGE_SIZE, InventoryResult
+from bytecontour.scanner import Entry, ScanProgress
+from bytecontour.ui.theme import apply_theme
+from bytecontour.ui.window import MainWindow
 
 
 def seed(database: Path, root: Path, files: int) -> int:
@@ -128,9 +128,9 @@ def main() -> None:
         parser.error(f"--files must be between {PAGE_SIZE * 2} and 9999999")
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     app = QApplication([])
-    app.setApplicationName("DiskSense Browse Benchmark")
+    app.setApplicationName("ByteContour Browse Benchmark")
     apply_theme(app)
-    with TemporaryDirectory(prefix="disksense-benchmark-", dir=Path.cwd()) as path:
+    with TemporaryDirectory(prefix="bytecontour-benchmark-", dir=Path.cwd()) as path:
         print(json.dumps(measure(app, Path(path), args.files), indent=2), flush=True)
 
 

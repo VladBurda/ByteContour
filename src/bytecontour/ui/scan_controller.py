@@ -8,26 +8,26 @@ from pathlib import Path
 from PySide6.QtCore import QLockFile, QObject, QRunnable, Qt, QThreadPool, QTimer, Signal, Slot
 from PySide6.QtWidgets import QApplication
 
-from disksense.cleanup import Candidates, CleanupAudit, CleanupPlan, CleanupService, Rules
-from disksense.database import ScanRepository, ScanSummary
-from disksense.duplicate_store import (
+from bytecontour.cleanup import Candidates, CleanupAudit, CleanupPlan, CleanupService, Rules
+from bytecontour.database import ScanRepository, ScanSummary
+from bytecontour.duplicate_store import (
     DuplicateProgress,
     DuplicateReport,
     DuplicateRequest,
     DuplicateStore,
     MembersPage,
 )
-from disksense.duplicates import DuplicateService, Review
-from disksense.inventory import InventoryQuery, InventoryReader, InventoryResult
-from disksense.monitor import MonitorData, MonitorService
-from disksense.recommendations import (
+from bytecontour.duplicates import DuplicateService, Review
+from bytecontour.inventory import InventoryQuery, InventoryReader, InventoryResult
+from bytecontour.monitor import MonitorData, MonitorService
+from bytecontour.recommendations import (
     Recommendation,
     RecommendationPage,
     RecommendationService,
     Thresholds,
 )
-from disksense.scan_service import ScanService
-from disksense.scanner import ScanCancelled, ScanControl, ScanProgress
+from bytecontour.scan_service import ScanService
+from bytecontour.scanner import ScanCancelled, ScanControl, ScanProgress
 
 _logger = logging.getLogger(__name__)
 
@@ -124,7 +124,7 @@ class ScanController(QObject):
             return
         self._path.parent.mkdir(parents=True, exist_ok=True)
         if not self._lock.tryLock(0):
-            raise RuntimeError("Scan history is locked. Close other DiskSense windows and retry.")
+            raise RuntimeError("Scan history is locked. Close other ByteContour windows and retry.")
         try:
             self._repository.initialize()
         except Exception:

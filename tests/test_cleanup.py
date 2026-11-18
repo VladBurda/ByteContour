@@ -6,20 +6,20 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from disksense.cleanup import CleanupService, Rules
-from disksense.database import ScanRepository
-from disksense.duplicate_store import DuplicateRequest, DuplicateStore
-from disksense.duplicates import DuplicateService
-from disksense.recycle import RecycleError
-from disksense.scan_service import ScanService
-from disksense.scanner import ScanControl
+from bytecontour.cleanup import CleanupService, Rules
+from bytecontour.database import ScanRepository
+from bytecontour.duplicate_store import DuplicateRequest, DuplicateStore
+from bytecontour.duplicates import DuplicateService
+from bytecontour.recycle import RecycleError
+from bytecontour.scan_service import ScanService
+from bytecontour.scanner import ScanControl
 
 IMMEDIATE = Rules(temporary_days=0, large_days=0, large_mib=1)
 
 
 @pytest.fixture
 def isolated(tmp_path: Path) -> Iterator[tuple[Path, ScanRepository]]:
-    with TemporaryDirectory(prefix="disksense-cleanup-test-", dir=Path.cwd()) as folder:
+    with TemporaryDirectory(prefix="bytecontour-cleanup-test-", dir=Path.cwd()) as folder:
         repo = ScanRepository(tmp_path / "inventory.sqlite3")
         repo.initialize()
         try:

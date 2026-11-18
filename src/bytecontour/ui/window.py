@@ -2,21 +2,22 @@
 
 from pathlib import Path
 
-from PySide6.QtCore import QSettings, QStandardPaths, QTimer, Slot
+from PySide6.QtCore import QSettings, QTimer, Slot
 from PySide6.QtGui import QAction, QCloseEvent, QKeySequence, QShowEvent
 from PySide6.QtWidgets import QHBoxLayout, QMainWindow, QStackedWidget, QTabWidget, QWidget
 
-from disksense.database import ScanSummary
-from disksense.monitor import MonitorData
-from disksense.ui.cleanup_view import CleanupView
-from disksense.ui.duplicate_view import DuplicateView
-from disksense.ui.explorer import Dashboard, Explorer
-from disksense.ui.monitor_view import MonitorView
-from disksense.ui.pages import PAGES, build_page
-from disksense.ui.recommendation_view import RecommendationView
-from disksense.ui.scan_controller import ScanController
-from disksense.ui.scan_views import HistoryView, ScanView, _size
-from disksense.ui.sidebar import Sidebar
+from bytecontour.app_paths import app_settings, default_inventory_path
+from bytecontour.database import ScanSummary
+from bytecontour.monitor import MonitorData
+from bytecontour.ui.cleanup_view import CleanupView
+from bytecontour.ui.duplicate_view import DuplicateView
+from bytecontour.ui.explorer import Dashboard, Explorer
+from bytecontour.ui.monitor_view import MonitorView
+from bytecontour.ui.pages import PAGES, build_page
+from bytecontour.ui.recommendation_view import RecommendationView
+from bytecontour.ui.scan_controller import ScanController
+from bytecontour.ui.scan_views import HistoryView, ScanView, _size
+from bytecontour.ui.sidebar import Sidebar
 
 _COLLAPSED_KEY = "ui/sidebarCollapsed"
 _EXPLORER = 1
@@ -32,15 +33,12 @@ class MainWindow(QMainWindow):
         self, settings: QSettings | None = None, database_path: Path | None = None
     ) -> None:
         super().__init__()
-        self._settings = settings if settings is not None else QSettings("DiskSense", "DiskSense")
-        self.setWindowTitle("DiskSense — Intelligent Disk & File Manager")
+        self._settings = settings if settings is not None else app_settings()
+        self.setWindowTitle("ByteContour — Intelligent Disk & File Manager")
         self.setMinimumSize(600, 490)
         self.resize(1080, 700)
         if database_path is None:
-            data = QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.AppLocalDataLocation
-            )
-            database_path = Path(data) / "inventory.sqlite3"
+            database_path = default_inventory_path()
         self.scan_controller = ScanController(self, database_path)
         self.scan_view = ScanView(self.scan_controller)
         self.explorer = Explorer(self.scan_controller)

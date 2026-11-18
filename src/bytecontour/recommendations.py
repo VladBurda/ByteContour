@@ -13,10 +13,10 @@ from sqlalchemy import and_, delete, func, or_, select, true, tuple_
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.orm import Session
 
-from disksense.database import (
+from bytecontour.database import (
     InventoryEntry as Entry,
 )
-from disksense.database import (
+from bytecontour.database import (
     RecommendationDismissal,
     Scan,
     ScanRepository,
@@ -24,7 +24,7 @@ from disksense.database import (
     WatchRoot,
     _utc_now,
 )
-from disksense.duplicate_store import DuplicateStore
+from bytecontour.duplicate_store import DuplicateStore
 
 DAY = 86400
 MIB = 1024**2

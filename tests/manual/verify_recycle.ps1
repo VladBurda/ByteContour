@@ -3,22 +3,22 @@ $workspace = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '../..')).Path
 $python = Join-Path $workspace '.venv/Scripts/python.exe'
 if (-not (Test-Path -LiteralPath $python -PathType Leaf)) { throw 'Run uv sync --locked first.' }
 $tag = [guid]::NewGuid().ToString('N')
-$fixture = Join-Path $workspace "disksense-native-test-$tag"
+$fixture = Join-Path $workspace "bytecontour-native-test-$tag"
 $null = New-Item -ItemType Directory -Path $fixture
 $target = Join-Path $fixture "recycle-check-$tag.tmp"
-$env:DISKSENSE_NATIVE_TEST = $target
+$env:BYTECONTOUR_NATIVE_TEST = $target
 try {
 @'
 import os
 from pathlib import Path
 
-from disksense.cleanup import CleanupService, Rules
-from disksense.database import ScanRepository
-from disksense.scan_service import ScanService
-from disksense.scanner import ScanControl
+from bytecontour.cleanup import CleanupService, Rules
+from bytecontour.database import ScanRepository
+from bytecontour.scan_service import ScanService
+from bytecontour.scanner import ScanControl
 
-path = Path(os.environ["DISKSENSE_NATIVE_TEST"])
-path.write_bytes(b"DiskSense disposable recycle test")
+path = Path(os.environ["BYTECONTOUR_NATIVE_TEST"])
+path.write_bytes(b"ByteContour disposable recycle test")
 database = path.parent / "audit.sqlite3"
 repo = ScanRepository(database)
 try:
@@ -57,12 +57,12 @@ finally:
     for ($i = 0; $i -lt 30 -and -not (Test-Path -LiteralPath $target); $i++) {
         Start-Sleep -Milliseconds 100
     }
-    if ((Get-Content -Raw -LiteralPath $target) -ne 'DiskSense disposable recycle test') {
+    if ((Get-Content -Raw -LiteralPath $target) -ne 'ByteContour disposable recycle test') {
         throw 'Restored fixture contents differ.'
     }
     Write-Output 'Restored the disposable fixture with its original bytes.'
 } finally {
-    Remove-Item Env:DISKSENSE_NATIVE_TEST -ErrorAction SilentlyContinue
+    Remove-Item Env:BYTECONTOUR_NATIVE_TEST -ErrorAction SilentlyContinue
     if (Test-Path -LiteralPath $target -PathType Leaf) { Remove-Item -LiteralPath $target }
     if (-not (Get-ChildItem -Force -LiteralPath $fixture)) { Remove-Item -LiteralPath $fixture }
 }

@@ -18,10 +18,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from disksense.cleanup import Candidates, CleanupAudit, CleanupPlan, Rules
-from disksense.ui.duplicate_view import _fill, _table
-from disksense.ui.scan_controller import ScanController
-from disksense.ui.scan_views import _layout, _note, _size
+from bytecontour.cleanup import Candidates, CleanupAudit, CleanupPlan, Rules
+from bytecontour.ui.duplicate_view import _fill, _table
+from bytecontour.ui.scan_controller import ScanController
+from bytecontour.ui.scan_views import _layout, _note, _size
 
 
 class CleanupView(QWidget):

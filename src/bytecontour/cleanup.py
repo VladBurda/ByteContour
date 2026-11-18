@@ -12,7 +12,7 @@ from uuid import uuid4
 from sqlalchemy import and_, literal, or_, select, update
 from sqlalchemy.orm import Session
 
-from disksense.database import (
+from bytecontour.database import (
     CleanupItem,
     CleanupOperation,
     DuplicateGroup,
@@ -21,19 +21,19 @@ from disksense.database import (
     ScanRepository,
     _utc_now,
 )
-from disksense.database import (
+from bytecontour.database import (
     InventoryEntry as Entry,
 )
-from disksense.duplicate_store import DuplicateStore, _version
-from disksense.file_hashes import (
+from bytecontour.duplicate_store import DuplicateStore, _version
+from bytecontour.file_hashes import (
     StaleFile,
     _check_ancestors,
     candidate_path,
     checked_file,
     compare_files,
 )
-from disksense.recycle import RecycleUncertain, recycle_file
-from disksense.scanner import ScanCancelled, ScanControl, _linked, _native_path
+from bytecontour.recycle import RecycleUncertain, recycle_file
+from bytecontour.scanner import ScanCancelled, ScanControl, _linked, _native_path
 
 PAGE = 100
 _DAY_NS = 86_400 * 10**9

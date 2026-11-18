@@ -4,9 +4,9 @@ from time import monotonic, sleep, time
 
 import pytest
 
-from disksense.database import ScanRepository
-from disksense.monitor import Change, EventBuffer, MonitorData, MonitorService, _ObserverQueue
-from disksense.scanner import Inventory, ScanControl
+from bytecontour.database import ScanRepository
+from bytecontour.monitor import Change, EventBuffer, MonitorData, MonitorService, _ObserverQueue
+from bytecontour.scanner import Inventory, ScanControl
 
 
 @pytest.fixture
@@ -112,8 +112,8 @@ def test_alert_cooldown_and_periodic_reconciliation(
     root = tmp_path / "watched"
     root.mkdir()
     clock = [1000.0]
-    monkeypatch.setattr("disksense.monitor.time", lambda: clock[0])
-    monkeypatch.setattr("disksense.monitor.monotonic", lambda: clock[0])
+    monkeypatch.setattr("bytecontour.monitor.time", lambda: clock[0])
+    monkeypatch.setattr("bytecontour.monitor.monotonic", lambda: clock[0])
     monkeypatch.setattr(service, "_attach", lambda _: None)  # simulate a quiet or lossy backend
     identifier = service.configure(None, str(root), True, 5, 4, 30)
     assert service.poll(identifier, ScanControl()).alert is None

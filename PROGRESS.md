@@ -1,4 +1,4 @@
-# DiskSense progress
+# ByteContour progress
 
 ## Phase 1 · Foundation
 
@@ -63,9 +63,18 @@
 - [x] Added SQLite schema version 5 for evidence-specific dismissals and verified persistence across restart.
 - [x] Tested threshold boundaries, a custom rule, incomplete monitoring samples, and the offscreen dismissal flow.
 
+## Phase 8 · ByteContour release preparation
+
+- [x] Renamed the desktop app, Python package, launch command, icons, and executable metadata to ByteContour.
+- [x] Preserved access to existing inventory databases and verified one-time import of previous preferences.
+- [x] Added installation instructions, screenshots, and Windows x64 package generation with a checksum and CI artifact workflow.
+- [x] Profiled duplicate detection and recorded the measured costs in [benchmarks](docs/BENCHMARKS.md).
+- [x] Built the wheel and portable Windows x64 archive. The packaged smoke test passed on Windows 11 with a system-only PATH and disposable storage.
+- [x] Passed Ruff, strict mypy, and 42 tests. Five existing Windows sandbox link fixtures were skipped.
+
 ## Pending
 
-Phase 8 covers performance review, packaging, and release preparation. See the [implementation plan](docs/IMPLEMENTATION_PLAN.md).
+The portable build is unsigned. Testing on a separate clean Windows machine and publication of a GitHub release remain pending.
 
 ## Known limitations
 

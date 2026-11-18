@@ -4,7 +4,7 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from disksense.database import (
+from bytecontour.database import (
     DuplicateGroup,
     DuplicateMember,
     DuplicateRun,
@@ -12,7 +12,7 @@ from disksense.database import (
     StorageSnapshot,
     WatchRoot,
 )
-from disksense.recommendations import (
+from bytecontour.recommendations import (
     DAY,
     MIB,
     Context,
@@ -20,7 +20,7 @@ from disksense.recommendations import (
     RecommendationService,
     Thresholds,
 )
-from disksense.scanner import Entry, ScanProgress
+from bytecontour.scanner import Entry, ScanProgress
 
 NOW = 2_000_000_000
 CONFIG = Thresholds(

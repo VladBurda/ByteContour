@@ -27,9 +27,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from disksense.database import ScanSummary
-from disksense.scanner import ScanProgress
-from disksense.ui.scan_controller import HistoryPage, ScanController
+from bytecontour.database import ScanSummary
+from bytecontour.scanner import ScanProgress
+from bytecontour.ui.scan_controller import HistoryPage, ScanController
 
 _INVALID_INDEX = QModelIndex()
 

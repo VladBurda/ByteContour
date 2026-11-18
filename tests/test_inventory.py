@@ -1,10 +1,10 @@
 from dataclasses import replace
 from pathlib import Path
 
-from disksense.database import ScanRepository
-from disksense.inventory import PAGE_SIZE, InventoryQuery, InventoryReader
-from disksense.scan_service import ScanService
-from disksense.scanner import ScanControl
+from bytecontour.database import ScanRepository
+from bytecontour.inventory import PAGE_SIZE, InventoryQuery, InventoryReader
+from bytecontour.scan_service import ScanService
+from bytecontour.scanner import ScanControl
 
 
 def test_inventory_scope_summary_and_filters(tmp_path: Path) -> None:

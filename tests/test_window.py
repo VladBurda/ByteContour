@@ -18,11 +18,11 @@ from PySide6.QtWidgets import (
 )
 from pytestqt.qtbot import QtBot
 
-from disksense.database import ScanRepository
-from disksense.scanner import BATCH_SIZE, Entry, Inventory, ScanControl, ScanProgress
-from disksense.ui.sidebar import Sidebar
-from disksense.ui.storage_charts import StorageChart
-from disksense.ui.window import MainWindow
+from bytecontour.database import ScanRepository
+from bytecontour.scanner import BATCH_SIZE, Entry, Inventory, ScanControl, ScanProgress
+from bytecontour.ui.sidebar import Sidebar
+from bytecontour.ui.storage_charts import StorageChart
+from bytecontour.ui.window import MainWindow
 
 DESTINATIONS = (
     "Dashboard",
@@ -352,7 +352,7 @@ def test_duplicate_finder_verifies_and_selects_keeper(
 def test_cleanup_confirmation_and_audit(
     qtbot: QtBot, window: MainWindow, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    with TemporaryDirectory(prefix="disksense-cleanup-test-", dir=Path.cwd()) as directory:
+    with TemporaryDirectory(prefix="bytecontour-cleanup-test-", dir=Path.cwd()) as directory:
         folder = Path(directory)
         source = folder / "sample.tmp"
         source.write_bytes(b"temporary")

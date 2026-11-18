@@ -19,10 +19,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from disksense.monitor import MonitorData, Root, Snapshot
-from disksense.ui.duplicate_view import _fill, _table
-from disksense.ui.scan_controller import ScanController
-from disksense.ui.scan_views import _layout, _note, _size
+from bytecontour.monitor import MonitorData, Root, Snapshot
+from bytecontour.ui.duplicate_view import _fill, _table
+from bytecontour.ui.scan_controller import ScanController
+from bytecontour.ui.scan_views import _layout, _note, _size
 
 _MIB = 1024**2
 

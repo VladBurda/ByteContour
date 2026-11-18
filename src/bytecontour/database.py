@@ -25,7 +25,7 @@ from sqlalchemy import (
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, aliased, mapped_column
 
-from disksense.scanner import Entry, ScanProgress, ScanState
+from bytecontour.scanner import Entry, ScanProgress, ScanState
 
 HISTORY_PAGE_SIZE = 50
 
@@ -342,7 +342,7 @@ class ScanRepository:
             connection.exec_driver_sql("BEGIN IMMEDIATE")
             version = int(connection.exec_driver_sql("PRAGMA user_version").scalar_one())
             if version > len(_MIGRATIONS):
-                raise RuntimeError("This database was created by a newer version of DiskSense.")
+                raise RuntimeError("This database was created by a newer version of ByteContour.")
             for index in range(version, len(_MIGRATIONS)):
                 _MIGRATIONS[index](connection)
                 connection.exec_driver_sql(f"PRAGMA user_version = {index + 1}")
@@ -376,7 +376,7 @@ class ScanRepository:
                 .values(
                     state="interrupted",
                     finished_at=_utc_now(),
-                    detail="DiskSense closed before publishing this scan.",
+                    detail="ByteContour closed before publishing this scan.",
                 )
             )
 

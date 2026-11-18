@@ -9,8 +9,8 @@ from sqlalchemy import func, literal, select, tuple_
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
-from disksense.database import InventoryEntry as Row
-from disksense.database import Scan, ScanRepository, ScanSummary
+from bytecontour.database import InventoryEntry as Row
+from bytecontour.database import Scan, ScanRepository, ScanSummary
 
 PAGE_SIZE = 200
 CHART_LIMIT = 12

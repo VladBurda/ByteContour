@@ -7,14 +7,14 @@ from fnmatch import fnmatchcase
 from pathlib import Path
 from time import monotonic, time
 
-from disksense.database import DuplicateMember, HashCache
-from disksense.duplicate_store import (
+from bytecontour.database import DuplicateMember, HashCache
+from bytecontour.duplicate_store import (
     DuplicateProgress,
     DuplicateReport,
     DuplicateRequest,
     DuplicateStore,
 )
-from disksense.file_hashes import (
+from bytecontour.file_hashes import (
     FileVersion,
     LiveFile,
     StaleFile,
@@ -23,7 +23,7 @@ from disksense.file_hashes import (
     full_hash,
     sampled_hash,
 )
-from disksense.scanner import ScanCancelled, ScanControl
+from bytecontour.scanner import ScanCancelled, ScanControl
 
 _PREVIEW_BYTES = 4096
 

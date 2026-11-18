@@ -14,9 +14,9 @@ from unittest.mock import patch
 from PySide6.QtCore import QSettings, QTimer
 from PySide6.QtWidgets import QApplication
 
-from disksense.database import ScanRepository, ScanSummary
-from disksense.scanner import Entry
-from disksense.ui.window import MainWindow
+from bytecontour.database import ScanRepository, ScanSummary
+from bytecontour.scanner import Entry
+from bytecontour.ui.window import MainWindow
 
 
 def peak_rss() -> int:
@@ -166,8 +166,8 @@ def main() -> None:
         parser.error("--files must be positive")
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     app = QApplication([])
-    app.setApplicationName("DiskSense Benchmark")
-    with TemporaryDirectory(prefix="disksense-benchmark-", dir=args.workspace.resolve()) as temp:
+    app.setApplicationName("ByteContour Benchmark")
+    with TemporaryDirectory(prefix="bytecontour-benchmark-", dir=args.workspace.resolve()) as temp:
         print(json.dumps(measure(app, Path(temp), args.files), indent=2), flush=True)
 
 

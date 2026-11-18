@@ -1,1 +1,0 @@
-"""DiskSense desktop application."""

@@ -1,4 +1,4 @@
-from disksense.main import main
+from bytecontour.main import main
 
 if __name__ == "__main__":
     raise SystemExit(main())

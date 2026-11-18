@@ -7,12 +7,12 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import perf_counter
 
-from disksense.database import ScanRepository
-from disksense.duplicate_store import DuplicateRequest, DuplicateStore
-from disksense.duplicates import DuplicateService
-from disksense.file_hashes import CHUNK_BYTES
-from disksense.scan_service import ScanService
-from disksense.scanner import ScanControl
+from bytecontour.database import ScanRepository
+from bytecontour.duplicate_store import DuplicateRequest, DuplicateStore
+from bytecontour.duplicates import DuplicateService
+from bytecontour.file_hashes import CHUNK_BYTES
+from bytecontour.scan_service import ScanService
+from bytecontour.scanner import ScanControl
 
 
 def measure(workspace: Path, pairs: int, decoys: int, mib_per_file: int) -> dict[str, object]:
@@ -63,7 +63,7 @@ def main() -> None:
         parser.error("Choose at least one pair and a non-negative decoy count.")
     if args.mib_per_file < 1:
         parser.error("--mib-per-file must be positive.")
-    with TemporaryDirectory(prefix="disksense-benchmark-", dir=Path.cwd()) as directory:
+    with TemporaryDirectory(prefix="bytecontour-benchmark-", dir=Path.cwd()) as directory:
         result = measure(Path(directory), args.pairs, args.decoys, args.mib_per_file)
         print(json.dumps(result, indent=2), flush=True)
 

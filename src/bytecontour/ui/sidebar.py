@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from disksense.ui.pages import PAGES
+from bytecontour.ui.pages import PAGES
 
 _STANDARD = QStyle.StandardPixmap
 _FALLBACK_ICONS = (
@@ -37,7 +37,7 @@ class Sidebar(QFrame):
         layout.setContentsMargins(10, 18, 10, 12)
         layout.setSpacing(4)
 
-        self._brand = QLabel("DiskSense")
+        self._brand = QLabel("ByteContour")
         self._brand.setObjectName("brand")
         self._brand.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._brand)
@@ -72,7 +72,7 @@ class Sidebar(QFrame):
             if collapsed
             else Qt.ToolButtonStyle.ToolButtonTextBesideIcon
         )
-        self._brand.setText("DS" if collapsed else "DiskSense")
+        self._brand.setText("BC" if collapsed else "ByteContour")
         self.setFixedWidth(64 if collapsed else 218)
         for button in self._buttons:
             button.setToolButtonStyle(style)

@@ -68,7 +68,7 @@ PAGES = (
     Page(
         "Settings",
         "preferences-system",
-        "DiskSense preferences",
+        "ByteContour preferences",
         "More settings will appear here",
         "Use the View menu to change sidebar visibility.",
     ),
